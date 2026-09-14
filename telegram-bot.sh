@@ -32,9 +32,9 @@ reply_from_agents() {
   payload="$(jq -n --arg id "agent_ab723545fb484badafe97a5593ffcdd0954b67630a99464eba" --arg model "gpt-5.5" --arg instructions "Официальный тон, пунктуальность, память, остроумие и критическое мышление." --arg input "$prompt" --arg sid "$session_id" 'if $sid == "" then {agent_id:$id,model:$model,instructions:$instructions,reasoning:{effort:"low",summary:"auto"},text:{format:{type:"text"},verbosity:"low"},environment:{type:"none"},input:$input,stream:true} else {events:[{type:"agent.session.input.message",input:[{role:"user",content:[{type:"input_text",text:$input}]}]}],stream:true} end')"
   stream_file="$(mktemp)"
   if [[ -n "$session_id" ]]; then
-    curl --no-buffer -sS --fail-with-body -X POST "$AGENTS/sessions/$session_id/events" -H "OpenAI-Beta: agents=v1" -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" -d "$payload" >"$stream_file" &
+    curl --no-buffer -sS -X POST "$AGENTS/sessions/$session_id/events" -H "OpenAI-Beta: agents=v1" -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" -d "$payload" >"$stream_file" &
   else
-    curl --no-buffer -sS --fail-with-body -X POST "$AGENTS/sessions" -H "OpenAI-Beta: agents=v1" -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" -d "$payload" >"$stream_file" &
+    curl --no-buffer -sS -X POST "$AGENTS/sessions" -H "OpenAI-Beta: agents=v1" -H "Authorization: Bearer $OPENAI_API_KEY" -H "Content-Type: application/json" -d "$payload" >"$stream_file" &
   fi
   curl_pid=$!
   for _ in {1..180}; do
