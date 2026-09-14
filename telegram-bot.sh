@@ -2,10 +2,12 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-set -a
-# shellcheck disable=SC1091
-source "$ROOT_DIR/.env.local"
-set +a
+if [[ -f "$ROOT_DIR/.env.local" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env.local"
+  set +a
+fi
 : "${OPENAI_API_KEY:?OPENAI_API_KEY is required}"
 : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}"
 command -v curl >/dev/null || { echo "curl is required" >&2; exit 1; }
