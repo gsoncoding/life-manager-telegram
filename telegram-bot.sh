@@ -27,7 +27,8 @@ send_message() {
 reply_from_agents() {
   local user_id="$1" prompt="$2" session_id payload stream_file answer
   session_id=""
-  [[ -f "$STATE/$user_id" ]] && session_id="$(<"$STATE/$user_id")"
+  # Start a fresh Agents session for each message until persistent continuation
+  # is re-enabled against the current session-events contract.
   payload="$(jq -n --arg id "agent_ab723545fb484badafe97a5593ffcdd0954b67630a99464eba" --arg model "gpt-5.6-luna" --arg instructions "Официальный тон, пунктуальность, память, остроумие и критическое мышление." --arg input "$prompt" --arg sid "$session_id" 'if $sid == "" then {agent_id:$id,agent:{model:$model,instructions:$instructions,reasoning:{effort:"low",summary:"auto"},text:{format:{type:"text"},verbosity:"low"}},environment:{type:"openai_hosted"},input:$input,stream:true} else {events:[{type:"agent.session.input.message",input:[{role:"user",content:[{type:"input_text",text:$input}]}]}],stream:true} end')"
   stream_file="$(mktemp)"
   if [[ -n "$session_id" ]]; then
