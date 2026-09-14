@@ -49,6 +49,10 @@ reply_from_agents() {
   session_id="$(sed -n 's/^data: //p' "$stream_file" | jq -r 'select(.type=="agent.session.created") | .session.id' | head -1)"
   [[ -n "$session_id" ]] && printf '%s' "$session_id" >"$STATE/$user_id"
   answer="$(sed -n 's/^data: //p' "$stream_file" | jq -r 'select(.type=="agent.session.turn.output_text.done") | .text' | tail -1)"
+  if [[ -z "$answer" ]]; then
+    printf 'Agents API returned no final text event:\n' >&2
+    sed -n 's/^data: //p' "$stream_file" | tail -5 >&2 || true
+  fi
   rm -f "$stream_file"
   [[ -n "$answer" ]] && printf '%s' "$answer" || printf '%s' "Не удалось получить ответ от Life Manager."
 }
