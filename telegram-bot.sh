@@ -48,7 +48,7 @@ reply_from_agents() {
   wait "$curl_pid" 2>/dev/null || true
   session_id="$(sed -n 's/^data: //p' "$stream_file" | jq -r 'select(.type=="agent.session.created") | .session.id' | head -1)"
   [[ -n "$session_id" ]] && printf '%s' "$session_id" >"$STATE/$user_id"
-  answer="$(sed -n 's/^data: //p' "$stream_file" | jq -r 'select(.type=="agent.session.turn.output_text.done") | .text' | tail -1)"
+  answer="$(sed -n 's/^data: //p' "$stream_file" | jq -r 'select(.type=="agent.session.turn.output_text.done" or .type=="agent.session.item.completed") | (.text // .item.text // ([.item.content[]?.text] | join("")) // empty)' | tail -1)"
   if [[ -z "$answer" ]]; then
     printf 'Agents API returned no final text event:\n' >&2
     sed -n 's/^data: //p' "$stream_file" | tail -5 >&2 || true
